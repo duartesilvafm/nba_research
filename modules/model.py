@@ -115,7 +115,7 @@ class ML_Model(Model):
             self.best_score = searcher.best_score_
             self.best_params = searcher.best_params_
             print(f'Best score: {self.best_score}')
-            print(f'With the following parameters: {self.best_params}')
+             # print(f'With the following parameters: {self.best_params}')
             
             # save results into different series
             means = searcher.cv_results_["mean_test_score"]
@@ -137,6 +137,21 @@ class ML_Model(Model):
             scoring_dfs[scoring] = scoring_df
 
         self.scoring_dfs = scoring_dfs
+
+
+    def feature_importances(self, x_vars: list, name:str, instance:str):
+        '''
+        method to get the most important features in order
+        '''
+
+        # get the feature_scores
+        feature_scores = self.base_model.feature_importances_.tolist()
+
+        self.importances_df=pd.DataFrame(data={'feature':x_vars, 'score':feature_scores})
+        self.importances_df.loc[:, 'model'] = name
+        self.importances_df.loc[:, 'model_instance'] = instance
+        self.importances_df.loc[:, 'vars'] = ' ,'.join(x_vars)
+        self.importances_df = self.importances_df[['model', 'model_instance', 'vars', 'feature', 'score']]
 
 
     def set_params(self, params_to_set: dict, metric_to_optimize="accuracy"):
