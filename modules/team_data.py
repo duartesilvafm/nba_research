@@ -65,7 +65,7 @@ class Team():
         return self.data[makes] / self.data[attempts]
 
 
-    def create_box_plot(self, data: pd.DataFrame, params_group: dict, params_bx: dict):
+    def create_box_plot(self, data: pd.DataFrame, params_group: dict, params_bx: dict, params_sort:dict=None, sort:bool=False):
         '''
         Method to create box plot
 
@@ -80,6 +80,9 @@ class Team():
 
         # get data for box plot
         bx_data = self.group_for_graph(data=data, **params_group)
+        
+        if sort:
+            bx_data = bx_data.sort_values(**params_sort)
 
         # create box plot diagram        
         fig = px.box(bx_data, **params_bx)
