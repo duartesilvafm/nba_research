@@ -1,6 +1,4 @@
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, KFold, RandomizedSearchCV
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import cross_val_score
 from dataclasses import dataclass
@@ -19,7 +17,6 @@ class Model():
     X: np.array([])
     y: np.array([])
     base_model: object
-    param_grid: dict
 
 
     def train_test_split(self, test_size = 0.2):
@@ -34,6 +31,10 @@ class Model():
         """
         method to fit the model with training data
         """
+
+        # print out params
+        params = self.base_model.get_params()
+        print(params)
 
         self.base_model.fit(self.X_train, self.y_train)
         self.train_score = self.base_model.score(self.X_train, self.y_train)
@@ -87,7 +88,7 @@ class Model():
 class ML_Model(Model):
 
 
-    def get_best_params(self, metrics = ["accuracy"]):
+    def get_best_params(self, searcher: object, searcher_params: dict,  metrics=["accuracy"]):
         """
         Create a function to return the best results on a grid search for a specific model
         Inputs:
@@ -101,28 +102,28 @@ class ML_Model(Model):
         scoring_dfs = {}
         best_params = {}
         kfold = KFold(n_splits=4, random_state=self.seed, shuffle = True)
+        searcher_params['cv'] = kfold
 
         for scoring in metrics:
 
             # create the grid_search objects
-            grid = GridSearchCV(estimator=self.base_model, param_grid=self.param_grid, scoring=scoring, cv=kfold, n_jobs=-1)
-            grid_result = grid.fit(self.X,self.y)
+            print('searching for best parameters')
+            searcher = searcher(**searcher_params)
+            searcher = searcher.fit(self.X,self.y)
 
             # get the best score
-            best_score = grid_result.best_score_
-
-            best_parameters = {}
-            for key in self.param_grid:
-                var = grid_result.best_params_[key]
-                best_parameters[f"{key}"] = var
+            self.best_score = searcher.best_score_
+            self.best_params = searcher.best_params_
+            print(f'Best score: {self.best_score}')
+            print(f'With the following parameters: {self.best_params}')
             
             # save results into different series
-            means = grid_result.cv_results_["mean_test_score"]
-            stds = grid_result.cv_results_["std_test_score"]      
-            params = grid_result.cv_results_["params"] 
+            means = searcher.cv_results_["mean_test_score"]
+            stds = searcher.cv_results_["std_test_score"]      
+            params = searcher.cv_results_["params"] 
 
             # save the results into a dataframe
-            columns_scoring_df = [key for key in self.param_grid]
+            columns_scoring_df = [key for key in searcher_params]
             scoring_df = pd.DataFrame(columns = columns_scoring_df + ["Metric", "Score"])
 
             # go through the parameters and append into a dataframe
@@ -134,30 +135,13 @@ class ML_Model(Model):
                 })])
 
             scoring_dfs[scoring] = scoring_df
-            best_params[scoring] = best_parameters
 
         self.scoring_dfs = scoring_dfs
-        self.best_params = best_params
-
-        
-    def get_best_score_gs(self, metric_to_optimize = "accuracy"):
-        """
-        Get the best score from the grid search
-        """
-
-        # get the df for the score
-        scoring_df = self.scoring_dfs[metric_to_optimize]
-        params_of_scoring = self.best_params[metric_to_optimize]
-            
-        # save the best score
-        self.best_score = scoring_df[scoring_df["Metric"] == metric_to_optimize]["Score"].max()
-        print(f"Best score: {self.best_score}, Best params: {params_of_scoring}")
 
 
-    def set_params(self, metric_to_optimize = "accuracy"):
+    def set_params(self, params_to_set: dict, metric_to_optimize="accuracy"):
         """
         method to set parameters for the model based on the grid search
         """
 
-        params_to_set = self.best_params[metric_to_optimize]
         self.base_model.set_params(**params_to_set)
