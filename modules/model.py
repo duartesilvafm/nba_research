@@ -32,10 +32,6 @@ class Model():
         method to fit the model with training data
         """
 
-        # print out params
-        params = self.base_model.get_params()
-        print(params)
-
         self.base_model.fit(self.X_train, self.y_train)
         self.train_score = self.base_model.score(self.X_train, self.y_train)
         print(f"Model train score: {self.train_score}")
