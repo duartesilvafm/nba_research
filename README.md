@@ -1,4 +1,7 @@
 # nba_research
+
+NOTE: Interactive plotly express plots are not displayed on github, please clone and run the notebook in your local machine to see the plots
+
 The NBA style of play has changed dramatically since the birth of the league.
 
 From the 50s to the early 70s, teams played at a frenetic pace, relying very heavily on their star players, some logging a season average of over 48 minutes.

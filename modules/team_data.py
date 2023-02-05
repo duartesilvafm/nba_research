@@ -54,17 +54,6 @@ class Team():
         self.data[column] = self.data.apply(lambda row: 1 if row[own_score] > row[opponent_score] else 0, axis = 1)
 
 
-    def get_conversion_variable(self, makes: str, attempts: str):
-        '''
-        Method to calculate the % of made fgs, fts, etc.
-
-        makes: variable for the makes
-        attempts: variables for the attempts
-        '''
-
-        return self.data[makes] / self.data[attempts]
-
-
     def create_box_plot(self, data: pd.DataFrame, params_group: dict, params_bx: dict, params_sort:dict=None, sort:bool=False):
         '''
         Method to create box plot
@@ -86,18 +75,7 @@ class Team():
 
         # create box plot diagram        
         fig = px.box(bx_data, **params_bx)
-        fig.show()
-
-
-    def create_scatter(self, data: pd.DataFrame, params_group: dict, params_scatter: dict):
-        '''
-        Method to create scatter plot base on certain parameters
-        
-        data: dataframe with data
-        params_group: params to feed into grouping dataframe
-        params_scatter: parameters to feed into scatter
-        '''
-        pass
+        return fig
 
 
     def group_for_graph(self, data, id_vars: list, value_vars: list, var_name: str = None):
